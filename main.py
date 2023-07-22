@@ -1,3 +1,4 @@
+
 import os
 import json
 import datetime
@@ -7,9 +8,9 @@ import requests
 
 interV = 15  # Script repeat interval in seconds
 looper = False  # variable for deciding looping mechanism
-
 bot_token = "5866208034:AAE9685WjS-3Cx48fahACoXLCLT0dj7Ro6Y"
 chat_id = "5227929164"
+
 print("Welcome to SMS Forwarder v:1.1")
 
 class bcolors:
@@ -90,7 +91,12 @@ def smsforward(looping=False):
             print("You can stop the script anytime by pressing Ctrl+C")
     print(f"Last SMS forwarded on {lastSMS}")
     jdata = os.popen("termux-sms-list -l 50").read()  # Reading latest 50 SMSs using termux-api
-    jd = json.loads(jdata)  # storing JSON output
+    try:
+        jd = json.loads(jdata)  # storing JSON output
+    except json.JSONDecodeError as e:
+        print(f"{bcolors.FAIL}Error decoding JSON: {e}{bcolors.ENDC}")
+        print(f"{bcolors.FAIL}JSON Data: {jdata}{bcolors.ENDC}")
+        return
     print(f"Reading {len(jd)} latest SMSs")
 
     for j in jd:
@@ -100,6 +106,7 @@ def smsforward(looping=False):
                     print(f"{f} found")
                     # Sending the forwarded SMS to Telegram
                     message = f"SMS Forwarded:\nFrom: {j['address']}\nBody: {j['body']}"
+                    print("Sending to Telegram:", message)
                     send_to_telegram(message)
 
                     tfile = open(tmpFile, "w")
@@ -113,3 +120,4 @@ smsforward()
 while looper:
     time.sleep(interV)
     smsforward(looping=True)
+    
